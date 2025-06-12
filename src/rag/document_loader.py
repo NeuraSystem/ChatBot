@@ -8,6 +8,7 @@ from langchain_community.document_loaders import (
     UnstructuredFileLoader
 )
 from langchain.schema import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter # Added import
 import os
 
 from .logging_config import logger

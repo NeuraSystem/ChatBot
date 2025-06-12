@@ -60,28 +60,42 @@ class EmbeddingGenerator:
         """Retorna la instancia del modelo de SentenceTransformer."""
         return self.model
 
-    @lru_cache(maxsize=128)
-    def generate_embedding(self, text: str) -> np.ndarray:
+    # Renamed from generate_embedding and added .tolist()
+    def embed_query(self, text: str) -> List[float]:
         try:
-            embedding = self.model.encode(text, show_progress_bar=False)
+            # @lru_cache cannot be directly applied to methods if 'self' is part of cache key implicitly.
+            # For simplicity in this step, removing lru_cache, can be added back carefully.
+            # Consider caching on 'text' if 'self' parameters (like model config) don't change.
+            cached_embedding = self.cache.get(text)
+            if cached_embedding is not None:
+                return cached_embedding.tolist()
+
+            embedding = self.model.encode(text, show_progress_bar=False, normalize_embeddings=self.config.NORMALIZE_EMBEDDINGS)
             self.cache.add(text, embedding)
-            return embedding
+            return embedding.tolist()
         except Exception as e:
-            logger.error(f"Error generando embedding: {str(e)}")
+            logger.error(f"Error en embed_query: {str(e)}")
             raise
             
-    def generate_embeddings(self, texts: List[str]) -> List[np.ndarray]:
+    # Renamed from generate_embeddings and ensured List[List[float]]
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
         try:
-            embeddings = self.model.encode(
+            # Similar caching consideration as embed_query for individual texts if needed,
+            # but batch operation is usually efficient.
+            embeddings_np = self.model.encode(
                 texts,
                 show_progress_bar=False,
-                batch_size=32
+                batch_size=32,
+                normalize_embeddings=self.config.NORMALIZE_EMBEDDINGS
             )
-            for text, embedding in zip(texts, embeddings):
-                self.cache.add(text, embedding)
-            return embeddings
+            # Add to cache individually if desired, though batch results might not be cached directly by simple text key
+            # For now, let's assume caching happens per text if embed_query was called, or rely on model's internal caching if any.
+
+            # Convert list of numpy arrays to list of lists of floats
+            embeddings_list = [emb.tolist() for emb in embeddings_np]
+            return embeddings_list
         except Exception as e:
-            logger.error(f"Error generando embeddings: {str(e)}")
+            logger.error(f"Error en embed_documents: {str(e)}")
             raise
             
     def clear_cache(self) -> None:

@@ -10,3 +10,5 @@ pydantic_settings==2.9.1
 python-dotenv==1.1.0
 sentence_transformers==4.1.0
 anthropic>=0.19.1
+langchain-openai
+# langchain-google-genai # Temporarily removed due to protobuf conflict

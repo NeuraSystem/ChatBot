@@ -29,7 +29,7 @@ CHATBOT_STATES = {
 MESSAGES = {
     "WELCOME": "Chatbot está listo! Escribe 'exit' para salir.",
     "ERROR": "Error: {error}",
-    "DOCUMENT_UPLOADED": "Documento {document} cargado exitosamente",
+    "DOCUMENT_UPLOADED": "Documento {} cargado exitosamente", # Changed {document} to {}
     "DOCUMENTS_CLEARED": "Documentos limpiados exitosamente",
     "USER_REGISTERED": "Usuario {} registrado exitosamente",
     "USER_NOT_FOUND": "Usuario {} no encontrado"

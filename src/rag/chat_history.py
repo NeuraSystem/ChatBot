@@ -22,16 +22,10 @@ class ChatHistory:
         Inicializa el sistema de historial.
         """
         self.config = config
-        # El modelo de chat ya no se usa aquí para generar respuestas, pero se mantiene
-        # por si se necesita para futuras funcionalidades dentro de esta clase.
-        # =============================================================================
-        # CAMBIO: Se usa 'ANTHROPIC_MODEL' para que coincida con el archivo de configuración.
-        # Esto soluciona el 'AttributeError'.
-        # =============================================================================
-        self.chat_model = ChatAnthropic(
-            model=config.ANTHROPIC_MODEL,
-            anthropic_api_key=config.ANTHROPIC_API_KEY
-        )
+        # LLM client (e.g., ChatAnthropic) is no longer instantiated here.
+        # LLM interactions are centralized in LangGraphService.
+        # This class focuses solely on managing ChatMessageHistory objects in memory for a session.
+        # Persistence of conversation history across sessions is handled by LangGraph's checkpointer (e.g., MemorySaver).
         self.history = ChatMessageHistory()
         logger.info("Sistema de historial de chat inicializado")
         

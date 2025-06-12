@@ -41,9 +41,10 @@ class RAGRetriever(BaseRetriever):
         # NOTA: Esta línea, que antes fallaba, ahora funcionará porque hemos
         # corregido el __init__ de VectorStore para que acepte el modelo.
         # =============================================================================
-        self.vector_store_manager = VectorStore(config, self.embeddings.get_model())
+        # Pasar la instancia de EmbeddingGenerator (self.embeddings) a VectorStore
+        self.vector_store_manager = VectorStore(config, self.embeddings)
         
-        if not self.embeddings.check_model():
+        if not self.embeddings.check_model(): # check_model is on EmbeddingGenerator
             raise RuntimeError("Error al inicializar el modelo de embeddings")
             
         logger.info("RAGRetriever inicializado y listo")

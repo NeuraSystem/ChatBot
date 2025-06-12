@@ -1,7 +1,7 @@
 # src/chatbot.py
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Any # Added Any
 
 from .rag.logging_config import logger
 from .constants import MESSAGES
@@ -18,31 +18,36 @@ class Chatbot:
     """
     Chatbot principal. Orquesta los servicios de LangGraph y Documentos.
     """
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None, retriever: Optional[BaseRetriever] = None):
+    # Removed api_key and model from __init__ signature
+    def __init__(self,
+                 global_config: Config, # Takes global_config
+                 langgraph_service: Any, # langgraph_service is now required
+                 retriever: Optional[BaseRetriever] = None,
+                 document_loader: Optional[Any] = None,
+                 chat_history_service: Optional[Any] = None): # Service responsible for managing user-specific conversation history state (if applicable beyond LangGraph's checkpointer)
         """
         Inicializa el chatbot con configuración flexible
         """
-        self.api_key = api_key or config.ANTHROPIC_API_KEY
-        # =============================================================================
-        # CAMBIO: Se usa 'ANTHROPIC_MODEL' para que coincida con el archivo de configuración.
-        # =============================================================================
-        self.model = model or config.ANTHROPIC_MODEL
+        self.config = global_config # Store global_config
+        self.langgraph_service = langgraph_service # Use provided langgraph_service
         
-        if config.RAG_ENABLED:
-            self.rag_retriever = retriever or RAGRetriever(config) 
-            self.chat_history = ChatHistory(config)
-            self.document_service = DocumentService(self.rag_retriever)
+        if self.config.RAG_ENABLED:
+            # Retriever might be optional if LGS already has it or if RAG is disabled.
+            self.rag_retriever = retriever
+            # ChatHistory is now managed by LangGraphService's MemorySaver or external history service
+            self.chat_history = chat_history_service
+
+            # DocumentService handles document processing logic; it's configured here if RAG is enabled.
+            if document_loader:
+                # DocumentService might also be better if provided directly by ServiceContainer
+                self.document_service = DocumentService(self.rag_retriever, document_loader)
+            else:
+                logger.warning("DocumentLoader no proporcionado a Chatbot aunque RAG está habilitado.")
+                self.document_service = None
         else:
             self.rag_retriever = None
             self.chat_history = None
             self.document_service = None
-        
-        self.langgraph_service = LangGraphService(
-            api_key=self.api_key, 
-            model=self.model, 
-            chat_history=self.chat_history, 
-            retriever=self.rag_retriever.get_retriever() if self.rag_retriever else None
-        )
         
     def send_message(self, message: str, user_id: str = "default") -> str:
         """

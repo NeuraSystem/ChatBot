@@ -14,15 +14,22 @@ class DocumentService:
     """
     Servicio para la gestión de documentos en el sistema RAG.
     """
-    def __init__(self, rag_retriever):
+    def __init__(self, rag_retriever, document_loader): # Añadido document_loader
         self.rag_retriever = rag_retriever
+        self.document_loader = document_loader # Almacenar document_loader
 
-    def add_documents(self, documents):
+    def add_documents(self, file_paths: list[str]): # Cambiado 'documents' a 'file_paths' para claridad
         if not config.RAG_ENABLED:
             return "El sistema RAG no está habilitado"
         try:
-            # Aquí asumimos que RAGRetriever se encarga de la lógica de carga de documentos
-            self.rag_retriever.add_documents(documents)
+            # Usar document_loader para cargar y procesar los archivos
+            loaded_documents = self.document_loader.load_multiple_documents(file_paths)
+            if not loaded_documents:
+                # Esto podría ocurrir si todos los archivos fallan en cargarse o están vacíos
+                logger.warn("No se cargaron documentos de las rutas proporcionadas.")
+                return MESSAGES["ERROR"].format(error="No se pudieron cargar documentos de las rutas especificadas.")
+
+            self.rag_retriever.add_documents(loaded_documents)
             # El mensaje de éxito debe ser genérico o basarse en la respuesta del retriever
             return MESSAGES["DOCUMENT_UPLOADED"].format("los documentos solicitados")
         except (FileNotFoundError, ValueError) as e:
