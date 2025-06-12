@@ -1,0 +1,12 @@
+langchain==0.3.25
+langchain_chroma==0.2.4
+langchain_community==0.3.25
+langchain_core==0.3.65
+langchain_anthropic>=0.2.0
+langgraph==0.4.8
+numpy==2.3.0
+pydantic==2.11.5
+pydantic_settings==2.9.1
+python-dotenv==1.1.0
+sentence_transformers==4.1.0
+anthropic>=0.19.1
